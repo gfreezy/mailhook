@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>SMTP reply codes</title>
+    <link rel="StyleSheet" type="text/css" href="SMTP%20reply%20codes_files/rjk.css">
+    <meta name="description" content="A summary of SMTP reply codes">
+    <meta name="category" content="reference">
+    <meta name="keywords" content="smtp error reply response codes rfc821 rfc1123">
+  </head>
+  <body>
+    <h1>SMTP reply codes</h1>
+
+    <p>See <a href="http://www.rfc-editor.org/rfc/rfc2821.txt">rfc2821</a>
+    for the basic specification of SMTP; see also <a href="http://www.rfc-editor.org/rfc/rfc1123.txt">rfc1123</a> for
+    important additional information.
+
+    </p><p>See <a href="http://www.rfc-editor.org/rfc/rfc1893.txt">rfc1893</a>
+    and <a href="http://www.rfc-editor.org/rfc/rfc2034.txt">rfc2034</a>
+    for information about enhanced status codes.</p>
+
+    <p>Check the <a href="http://www.rfc-editor.org/rfc-index2.html">RFC
+    index</a> for further mail-related RFCs.
+
+    </p><table>
+      <caption>
+	Reply codes in numerical order
+      </caption>
+      <thead>
+	<tr>
+	  <th>Code
+	  </th><th>Meaning
+	</th></tr>
+      </thead>
+      <tbody>
+	<tr><td>200</td> <td>(nonstandard success response, see rfc876)</td></tr>
+	<tr><td>211</td> <td>System status, or system help reply</td></tr>
+	<tr><td>214</td> <td>Help message</td></tr>
+	<tr><td>220</td> <td>&lt;domain&gt; Service ready</td></tr>
+	<tr><td>221</td> <td>&lt;domain&gt; Service closing transmission channel</td></tr>
+	<tr><td>250</td> <td>Requested mail action okay, completed</td></tr>
+	<tr><td>251</td> <td>User not local; will forward to &lt;forward-path&gt;</td></tr>
+	<tr><td>252</td> <td>Cannot VRFY user, but will accept message and attempt delivery</td></tr>
+        
+	<tr><td>354</td> <td>Start mail input; end with &lt;CRLF&gt;.&lt;CRLF&gt;</td></tr>
+	<tr><td>421</td> <td>&lt;domain&gt; Service not available, closing transmission channel</td></tr>
+	<tr><td>450</td> <td>Requested mail action not taken: mailbox unavailable</td></tr>
+	<tr><td>451</td> <td>Requested action aborted: local error in processing</td></tr>
+	<tr><td>452</td> <td>Requested action not taken: insufficient system storage</td></tr>
+	<tr><td>500</td> <td>Syntax error, command unrecognised</td></tr>
+	<tr><td>501</td> <td>Syntax error in parameters or arguments</td></tr>
+	<tr><td>502</td> <td>Command not implemented</td></tr>
+	<tr><td>503</td> <td>Bad sequence of commands</td></tr>
+	<tr><td>504</td> <td>Command parameter not implemented</td></tr>
+	<tr><td>521</td> <td>&lt;domain&gt; does not accept mail (see rfc1846)</td></tr>
+	<tr><td>530</td> <td>Access denied (???a Sendmailism)</td></tr>
+	<tr><td>550</td> <td>Requested action not taken: mailbox unavailable</td></tr>
+	<tr><td>551</td> <td>User not local; please try &lt;forward-path&gt;</td></tr>
+	<tr><td>552</td> <td>Requested mail action aborted: exceeded storage allocation</td></tr>
+	<tr><td>553</td> <td>Requested action not taken: mailbox name not allowed</td></tr>
+	<tr><td>554</td> <td>Transaction failed</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <caption>
+	Reply codes grouped by command
+      </caption>
+      <thead>
+	<tr>
+	  <th>Command
+	  </th><th>Code
+	  </th><th>Description
+	</th></tr>
+      </thead>
+      <tbody>
+
+	<tr><td><a name="connect" href="#connect">connect</a></td></tr>
+	<tr><td></td><td>220</td><td>&lt;domain&gt; Service ready</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="HELO" href="#HELO">HELO</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>504</td><td>Command parameter not implemented</td>
+	</tr><tr><td></td><td>521</td><td>&lt;domain&gt; does not accept mail [rfc1846]</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="EHLO" href="#EHLO">EHLO</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>550</td><td>Not implemented</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>504</td><td>Command parameter not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="MAIL" href="#MAIL">MAIL</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>552</td><td>Requested mail action aborted: exceeded storage allocation</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>452</td><td>Requested action not taken: insufficient system storage</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="RCPT" href="#RCPT">RCPT</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>251</td><td>User not local; will forward to &lt;forward-path&gt;</td>
+	</tr><tr><td></td><td>550</td><td>Requested action not taken: mailbox unavailable</td>
+	</tr><tr><td></td><td>551</td><td>User not local; please try &lt;forward-path&gt;</td>
+	</tr><tr><td></td><td>552</td><td>Requested mail action aborted: exceeded storage allocation</td>
+	</tr><tr><td></td><td>553</td><td>Requested action not taken: mailbox name not allowed</td>
+	</tr><tr><td></td><td>450</td><td>Requested mail action not taken: mailbox unavailable</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>452</td><td>Requested action not taken: insufficient system storage</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>503</td><td>Bad sequence of commands</td>
+	</tr><tr><td></td><td>521</td><td>&lt;domain&gt; does not accept mail [rfc1846]</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="DATA" href="#DATA">DATA</a></td></tr>
+	<tr><td></td><td>354</td><td>Start mail input; end with &lt;CRLF&gt;.&lt;CRLF&gt;</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>554</td><td>Transaction failed</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>503</td><td>Bad sequence of commands</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td>received data</td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>552</td><td>Requested mail action aborted: exceeded storage allocation</td>
+	</tr><tr><td></td><td>554</td><td>Transaction failed</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>452</td><td>Requested action not taken: insufficient system storage</td>
+	</tr><tr><td><a name="RSET" href="#RSET">RSET</a></td></tr>
+	<tr><td></td><td>200</td><td>(nonstandard success response, see rfc876)</td>
+	</tr><tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>504</td><td>Command parameter not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="SEND" href="#SEND">SEND</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>552</td><td>Requested mail action aborted: exceeded storage allocation</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>452</td><td>Requested action not taken: insufficient system storage</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="SOML" href="#SOML">SOML</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>552</td><td>Requested mail action aborted: exceeded storage allocation</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>452</td><td>Requested action not taken: insufficient system storage</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="SAML" href="#SAML">SAML</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>552</td><td>Requested mail action aborted: exceeded storage allocation</td>
+	</tr><tr><td></td><td>451</td><td>Requested action aborted: local error in processing</td>
+	</tr><tr><td></td><td>452</td><td>Requested action not taken: insufficient system storage</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="VRFY" href="#VRFY">VRFY</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>251</td><td>User not local; will forward to &lt;forward-path&gt;</td>
+	</tr><tr><td></td><td>252</td> <td>Cannot VRFY user, but will accept message and attempt delivery</td></tr>
+	<tr><td></td><td>550</td><td>Requested action not taken: mailbox unavailable</td>
+	</tr><tr><td></td><td>551</td><td>User not local; please try &lt;forward-path&gt;</td>
+	</tr><tr><td></td><td>553</td><td>Requested action not taken: mailbox name not allowed</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>504</td><td>Command parameter not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="EXPN" href="#EXPN">EXPN</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>550</td><td>Requested action not taken: mailbox unavailable</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>504</td><td>Command parameter not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="HELP" href="#HELP">HELP</a></td></tr>
+	<tr><td></td><td>211</td><td>System status, or system help reply</td>
+	</tr><tr><td></td><td>214</td><td>Help message</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>501</td><td>Syntax error in parameters or arguments</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>504</td><td>Command parameter not implemented</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="NOOP" href="#NOOP">NOOP</a></td></tr>
+	<tr><td></td><td>200</td><td>(nonstandard success response, see rfc876)</td>
+	</tr><tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>421</td><td>&lt;domain&gt; Service not available, closing transmission channel</td>
+	</tr><tr><td><a name="QUIT" href="#QUIT">QUIT</a></td></tr>
+	<tr><td></td><td>221</td><td>&lt;domain&gt; Service closing transmission channel</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td><a name="TURN" href="#TURN">TURN</a></td></tr>
+	<tr><td></td><td>250</td><td>Requested mail action okay, completed</td>
+	</tr><tr><td></td><td>502</td><td>Command not implemented</td>
+	</tr><tr><td></td><td>500</td><td>Syntax error, command unrecognised</td>
+	</tr><tr><td></td><td>503</td><td>Bad sequence of commands</td>
+
+      </tr></tbody>
+    </table>
+
+    <p><a href="https://www.greenend.org.uk/rjk/">RJK</a> | <a href="https://www.greenend.org.uk/rjk/contents.html">Contents</a></p>
+
+  
+
+
+</body></html>
+<!--
+Local variables:
+mode: sgml
+sgml-indent-data:t
+End:
+-->

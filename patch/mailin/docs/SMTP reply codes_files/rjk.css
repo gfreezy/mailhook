@@ -1,0 +1,207 @@
+BODY {
+	color: black;
+	background-color: white
+}
+
+P.break {
+	text-align: center;
+	font-style: italic
+}
+
+.header {
+	font-weight: bold
+}
+
+A:link {
+	color: blue
+}
+
+A:visited {
+	color: red
+}
+
+A:active {
+	color: blue
+}
+
+A.front:link {
+	color: black
+}
+
+A.front:visited {
+	color: black
+}
+
+A.front:active {
+	color: white
+}
+
+H1 {
+	font-family: helvetica, arial, sans-serif;
+	text-align: center;
+	background-color: #f0f0f0;
+	padding: 0.2em;
+	display: block
+}
+
+.author {
+	font-family: helvetica, arial, sans-serif;
+	text-align: center
+}
+
+H2,H3,H4,H5,H6 {
+	font-family: helvetica, arial, sans-serif
+}
+
+h2 { 
+  background-color: #e0ffe0;	/* pastel green */
+  padding: 0.2em;
+  display: block
+}
+
+.inlineheading {
+	font-family: helvetica, arial, sans-serif;
+	font-weight: bold
+}
+
+td,tr {
+	background-color: #e0e0e0
+}
+
+tr.odd td,tr.odd {
+	background-color: #f0f0f0
+}
+
+.boxed {
+	border: thin solid black
+}
+
+.summary {
+	background-color: yellow;
+	color: black
+}
+
+.type {
+	font-weight: bold
+}
+
+.function {
+	font-weight: bold
+}
+
+.variable {
+	font-weight: bold
+}
+
+.constant {
+	font-weight: bold
+}
+
+.headerfile {
+	font-weight: bold
+}
+
+.code {
+	font-weight: bold
+}
+
+.proclaim {
+	font-weight: bold
+}
+
+.tinytext {
+	font-size: 75%
+}
+
+kbd {
+	font-weight: bold
+}
+
+.command {
+	font-weight: bold
+}
+
+.filename {
+	font-style: italic
+}
+
+.option {
+	font-weight: bold
+}
+
+.cite {
+	margin-left: 5%;
+	margin-right: 5%
+}
+
+.jobdbproblem {
+	color: blue
+}	
+
+.administrivia {
+	font-size: smaller
+}
+
+.tight {
+	margin-top: 0;
+	margin-bottom: 0
+}
+
+.indented {
+       margin-left: 1em
+}
+
+div#sidebar {
+	margin: 1em;
+        position: fixed;
+        width: 14em;
+        top: 0;
+        right: auto;
+        left: 0;
+}
+
+p.sidebarhead {	
+	font-weight: bold;
+	margin-bottom: 0
+}
+
+p.sidebar {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 1em
+}
+
+a.sidebar {
+	text-decoration: none
+}
+
+div#content {
+        position: absolute;
+        width: auto;
+        top: 0;
+        right: 0;
+        left: 14em;
+	margin-right: 1em
+}
+        
+.module {
+	font-weight: bold
+}
+
+div.section {
+	margin-left: 1em
+}
+
+p.alarm {
+	background-color: red;
+	border: 1px solid black;
+	font-weight: bold;
+	color: white;
+	font-size: 120%;
+	padding-top: 2px;
+	text-align: center
+}
+
+table.pollhup td {
+    vertical-align: top
+}

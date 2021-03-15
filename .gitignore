@@ -1,0 +1,4 @@
+/target
+mail.txt
+store.sqlite
+*.iml
