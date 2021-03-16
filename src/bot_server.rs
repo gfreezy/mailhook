@@ -159,8 +159,12 @@ async fn on_text_message(store: &Store, client: &Client, msg: &TextMessage) -> R
     Ok(())
 }
 
-async fn index(req: web::Json<Challenge>) -> impl Responder {
+async fn challenge(req: web::Json<Challenge>) -> impl Responder {
     req
+}
+
+async fn index() -> impl Responder {
+    "hello"
 }
 
 #[actix_web::main]
@@ -169,8 +173,9 @@ pub(crate) async fn serve(client: Client, store: Store) -> std::io::Result<()> {
         App::new()
             .data(client.clone())
             .data(store.clone())
-            .route("/challenge", web::post().to(index))
+            .route("/challenge", web::post().to(challenge))
             .route("/event", web::post().to(event))
+            .route("/", web::get().to(index))
     })
     .bind("0.0.0.0:8080")?
     .run()
