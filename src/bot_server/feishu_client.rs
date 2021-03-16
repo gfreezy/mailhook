@@ -49,7 +49,7 @@ impl Client {
             .set("Authorization", &format!("Bearer {}", token?))
             .send_json(serde_json::to_value(req)?)?
             .into_json()?;
-        ensure!(resp.code != 0, resp.msg);
+        ensure!(resp.code == 0, resp.msg);
         Ok(())
     }
 
