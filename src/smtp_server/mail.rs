@@ -1,13 +1,14 @@
+use anyhow::Result;
 use melib::Envelope;
 
-pub fn get_text_from_mail(mail: &[u8]) -> String {
-    let envelope = Envelope::from_bytes(mail, None).unwrap();
+pub fn get_text_from_mail(mail: &[u8]) -> Result<String> {
+    let envelope = Envelope::from_bytes(mail, None)?;
     let attachment = envelope.body_bytes(mail);
     let body = attachment.text();
     if let Some(sub) = envelope.subject {
-        format!("{}\n{}", sub, body)
+        Ok(format!("{}\n{}", sub, body))
     } else {
-        body
+        Ok(body)
     }
 }
 

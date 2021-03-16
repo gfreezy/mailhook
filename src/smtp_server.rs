@@ -3,7 +3,8 @@ mod mail;
 use crate::bot_server::feishu_client::Client;
 use crate::smtp_server::mail::get_text_from_mail;
 use crate::store::Store;
-use log::debug;
+use anyhow::{anyhow, Result};
+use log::{debug, error};
 use mailin_embedded::{Handler, Response, Server};
 use std::io;
 use std::net::IpAddr;
@@ -32,13 +33,26 @@ impl MailHandler {
     }
 
     fn notify(&mut self) {
-        let body = get_text_from_mail(&self.body);
+        let body = match get_text_from_mail(&self.body) {
+            Err(e) => {
+                error!("get text from mail error: {}", e);
+                return;
+            }
+            Ok(body) => body,
+        };
         for rcpt in &self.rcpts {
             if let Some(name) = rcpt.split('@').next() {
                 if self.store.exist_chat(name) {
                     debug!("notify {}", rcpt);
-                    self.client
+                    let ret = self
+                        .client
                         .send_text_message(name.to_string(), body.to_string());
+                    if let Err(e) = ret {
+                        error!(
+                            "send text message error, chat_id: {}, body: {}, msg: {}",
+                            name, body, e
+                        );
+                    }
                 }
             }
         }
@@ -90,13 +104,14 @@ impl Handler for MailHandler {
     }
 }
 
-pub fn serve(client: Client, store: Store) {
+pub fn serve(client: Client, store: Store) -> Result<()> {
     let handler = MailHandler::new(client, store);
     let mut server = Server::new(handler);
 
     server
         .with_name("Mailhook SMTP Server")
         .with_addr("0.0.0.0:25")
-        .unwrap();
-    server.serve().unwrap();
+        .map_err(|e| anyhow!("{}", e))?;
+    server.serve().map_err(|e| anyhow!("{}", e))?;
+    Ok(())
 }

@@ -1,4 +1,5 @@
 use actix_web::web::block;
+use anyhow::{ensure, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
@@ -30,7 +31,7 @@ impl Client {
         chat_id: String,
         text: String,
         root_id: Option<String>,
-    ) -> bool {
+    ) -> Result<()> {
         #[derive(Serialize, Deserialize)]
         struct Resp {
             code: usize,
@@ -45,15 +46,14 @@ impl Client {
         };
         let token = self.get_tenant_access_token();
         let resp: Resp = ureq::post("https://open.feishu.cn/open-apis/message/v4/send/")
-            .set("Authorization", &format!("Bearer {}", token))
-            .send_json(serde_json::to_value(req).unwrap())
-            .unwrap()
-            .into_json()
-            .unwrap();
-        resp.code == 0
+            .set("Authorization", &format!("Bearer {}", token?))
+            .send_json(serde_json::to_value(req)?)?
+            .into_json()?;
+        ensure!(resp.code != 0, resp.msg);
+        Ok(())
     }
 
-    pub fn send_text_message(&self, chat_id: String, text: String) -> bool {
+    pub fn send_text_message(&self, chat_id: String, text: String) -> Result<()> {
         self.reply_text_message(chat_id, text, None)
     }
 
@@ -62,21 +62,16 @@ impl Client {
         chat_id: String,
         text: String,
         root_id: Option<String>,
-    ) -> bool {
+    ) -> Result<()> {
         let self_clone = self.clone();
-        block(move || {
-            let success = self_clone.reply_text_message(chat_id, text, root_id);
-            Ok::<_, ()>(success)
-        })
-        .await
-        .unwrap()
+        Ok(block(move || self_clone.reply_text_message(chat_id, text, root_id)).await?)
     }
 
-    pub async fn send_text_message_async(&self, chat_id: String, text: String) -> bool {
+    pub async fn send_text_message_async(&self, chat_id: String, text: String) -> Result<()> {
         self.reply_text_message_async(chat_id, text, None).await
     }
 
-    pub fn get_tenant_access_token(&self) -> String {
+    pub fn get_tenant_access_token(&self) -> Result<String> {
         #[derive(Serialize, Deserialize)]
         struct Resp {
             code: isize,
@@ -90,11 +85,9 @@ impl Client {
                 .send_json(ureq::json! ({
                     "app_id": self.app_id,
                     "app_secret": self.app_secret
-                }))
-                .unwrap()
-                .into_json()
-                .unwrap();
-        resp.tenant_access_token
+                }))?
+                .into_json()?;
+        Ok(resp.tenant_access_token)
     }
 }
 

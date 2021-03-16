@@ -3,7 +3,8 @@ pub(crate) mod feishu_client;
 use crate::bot_server::feishu_client::Client;
 use crate::store::Store;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use log::{debug, trace};
+use anyhow::Result;
+use log::{debug, error, trace};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -102,31 +103,39 @@ async fn event(
         EventRequest::EventV1 { event, .. } => event,
         EventRequest::EventV2 { event, .. } => event,
     };
-    match event {
+    let ret = match event {
         Event::AddOrRemoveBot(e) => on_add_or_remove_bot(&store, &client, e).await,
         Event::TextMessage(e) => on_text_message(&store, &client, e).await,
     };
+    if let Err(e) = ret {
+        return HttpResponse::InternalServerError().json(e.to_string());
+    }
 
     return HttpResponse::Ok().json("ok");
 }
 
-async fn on_add_or_remove_bot(store: &Store, client: &Client, msg: &AddOrRemoveBot) {
+async fn on_add_or_remove_bot(store: &Store, client: &Client, msg: &AddOrRemoveBot) -> Result<()> {
     let open_chat_id = msg.open_chat_id.clone();
     match msg.type_.as_str() {
         "add_bot" => {
-            store.add_bot_to_chat(&open_chat_id);
-            let text = format!(
-                "Email address: {}",
-                store.mail_for_chat(&open_chat_id).unwrap()
-            );
-            let _ = client.send_text_message_async(open_chat_id, text).await;
+            store.add_bot_to_chat(&open_chat_id)?;
+            match store.mail_for_chat(&open_chat_id) {
+                Some(mail) => {
+                    let text = format!("Email address: {}", mail);
+                    let _ = client.send_text_message_async(open_chat_id, text).await;
+                }
+                None => {
+                    error!("mail address not found for chat: {}", &open_chat_id);
+                }
+            }
         }
-        "remove_bot" => store.remove_bot_from_chat(&open_chat_id),
+        "remove_bot" => store.remove_bot_from_chat(&open_chat_id)?,
         _ => unreachable!(),
     };
+    Ok(())
 }
 
-async fn on_text_message(store: &Store, client: &Client, msg: &TextMessage) {
+async fn on_text_message(store: &Store, client: &Client, msg: &TextMessage) -> Result<()> {
     debug!("on text message");
     let text = match msg.chat_type.as_str() {
         "private" => "请在群组中@我".to_string(),
@@ -146,7 +155,8 @@ async fn on_text_message(store: &Store, client: &Client, msg: &TextMessage) {
             text,
             Some(msg.open_message_id.clone()),
         )
-        .await;
+        .await?;
+    Ok(())
 }
 
 async fn index(req: web::Json<Challenge>) -> impl Responder {
