@@ -6,31 +6,36 @@ use std::sync::atomic::{AtomicBool, Ordering};
 pub struct Store {
     path: Option<String>,
     connection: Connection,
+    mail_domain: String,
 }
 
 static INITED: AtomicBool = AtomicBool::new(false);
 
 impl Clone for Store {
     fn clone(&self) -> Self {
-        Store::new(self.path.clone()).expect("clone store error")
+        Store::new(self.path.clone(), self.mail_domain.clone()).expect("clone store error")
     }
 }
 
 impl Store {
-    pub fn new(path: Option<String>) -> Result<Store> {
+    pub fn new(path: Option<String>, mail_domain: String) -> Result<Store> {
         let connection = if let Some(p) = &path {
             Connection::open(p)?
         } else {
             Connection::open_in_memory()?
         };
-        let store = Store { connection, path };
+        let store = Store {
+            connection,
+            path,
+            mail_domain,
+        };
         store.init()?;
         Ok(store)
     }
 
     #[cfg(test)]
     pub fn in_memory() -> Result<Store> {
-        Store::new(None)
+        Store::new(None, "mail.xcf.io".to_string())
     }
 
     pub fn init(&self) -> Result<()> {
@@ -82,7 +87,7 @@ impl Store {
     pub fn mail_for_chat(&self, chat_id: &str) -> Option<String> {
         debug!("mail for chat: {}", chat_id);
         if self.exist_chat(chat_id) {
-            Some(format!("{}@mail.xcf.io", chat_id))
+            Some(format!("{}@{}", chat_id, &self.mail_domain))
         } else {
             None
         }

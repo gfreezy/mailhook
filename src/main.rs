@@ -17,9 +17,10 @@ fn main() -> Result<()> {
     let feishu_app_id = std::env::var("FEISHU_APP_ID").expect("`FEISHU_APP_ID` must be set");
     let feishu_app_secret =
         std::env::var("FEISHU_APP_SECRET").expect("`FEISHU_APP_SECRET` must be set");
+    let mail_domain = std::env::var("MAIL_DOMAIN").expect("`MAIL_DOMAIN` must be set");
     let client = Client::new(feishu_app_id, feishu_app_secret);
     let client_clone = client.clone();
-    let store = Store::new(Some("store.sqlite".to_string()))?;
+    let store = Store::new(Some("store.sqlite".to_string()), mail_domain)?;
     let store_clone = store.clone();
     thread::spawn(move || smtp_server::serve(client_clone, store_clone));
     bot_server::serve(client, store)?;
