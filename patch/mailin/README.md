@@ -1,4 +1,5 @@
 # Mailin
+original repo: https://gitlab.com/alienscience/mailin/-/tree/master/
 
 This is a library for writing SMTP servers in Rust. The library handles parsing, the SMTP state machine and building responses.
 
