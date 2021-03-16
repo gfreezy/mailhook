@@ -87,6 +87,7 @@ impl Client {
                     "app_secret": self.app_secret
                 }))?
                 .into_json()?;
+        ensure!(resp.code == 0, resp.msg);
         Ok(resp.tenant_access_token)
     }
 }
