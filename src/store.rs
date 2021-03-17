@@ -84,13 +84,12 @@ impl Store {
         count > 0
     }
 
-    pub fn mail_for_chat(&self, chat_id: &str) -> Option<String> {
+    pub fn mail_for_chat(&self, chat_id: &str) -> Result<String> {
         debug!("mail for chat: {}", chat_id);
-        if self.exist_chat(chat_id) {
-            Some(format!("{}@{}", chat_id, &self.mail_domain))
-        } else {
-            None
+        if !self.exist_chat(chat_id) {
+            self.add_bot_to_chat(chat_id)?;
         }
+        Ok(format!("{}@{}", chat_id, &self.mail_domain))
     }
 }
 

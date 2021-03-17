@@ -4,7 +4,7 @@ use crate::bot_server::feishu_client::Client;
 use crate::store::Store;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use log::{debug, error, trace};
+use log::{debug, trace};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -119,15 +119,9 @@ async fn on_add_or_remove_bot(store: &Store, client: &Client, msg: &AddOrRemoveB
     match msg.type_.as_str() {
         "add_bot" => {
             store.add_bot_to_chat(&open_chat_id)?;
-            match store.mail_for_chat(&open_chat_id) {
-                Some(mail) => {
-                    let text = format!("Email address: {}", mail);
-                    let _ = client.send_text_message_async(open_chat_id, text).await;
-                }
-                None => {
-                    error!("mail address not found for chat: {}", &open_chat_id);
-                }
-            }
+            let mail = store.mail_for_chat(&open_chat_id)?;
+            let text = format!("Email address: {}", mail);
+            let _ = client.send_text_message_async(open_chat_id, text).await;
         }
         "remove_bot" => store.remove_bot_from_chat(&open_chat_id)?,
         _ => unreachable!(),
@@ -139,13 +133,7 @@ async fn on_text_message(store: &Store, client: &Client, msg: &TextMessage) -> R
     debug!("on text message");
     let text = match msg.chat_type.as_str() {
         "private" => "请在群组中@我".to_string(),
-        "group" => {
-            if let Some(mail) = store.mail_for_chat(&msg.open_chat_id) {
-                mail
-            } else {
-                "当前群组未注册，请删除机器人后重新添加".to_string()
-            }
-        }
+        "group" => store.mail_for_chat(&msg.open_chat_id)?,
         _ => unreachable!(),
     };
 
