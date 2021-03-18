@@ -1,19 +1,36 @@
 use anyhow::Result;
 use log::{debug, error};
-use rusqlite::{Connection, NO_PARAMS};
-use std::sync::atomic::{AtomicBool, Ordering};
+use rusqlite::{params, Connection, OptionalExtension, NO_PARAMS};
+use std::sync::{Arc, Once};
 
 pub struct Store {
     path: Option<String>,
     connection: Connection,
     mail_domain: String,
+    inited: Arc<Once>,
 }
-
-static INITED: AtomicBool = AtomicBool::new(false);
 
 impl Clone for Store {
     fn clone(&self) -> Self {
-        Store::new(self.path.clone(), self.mail_domain.clone()).expect("clone store error")
+        let store = if let Some(p) = &self.path {
+            let connection = Connection::open(p).unwrap();
+            Store {
+                connection,
+                path: Some(p.clone()),
+                mail_domain: self.mail_domain.clone(),
+                inited: self.inited.clone(),
+            }
+        } else {
+            let connection = Connection::open_in_memory().unwrap();
+            Store {
+                connection,
+                path: None,
+                mail_domain: self.mail_domain.clone(),
+                inited: Arc::new(Once::new()),
+            }
+        };
+        store.init();
+        store
     }
 }
 
@@ -28,26 +45,38 @@ impl Store {
             connection,
             path,
             mail_domain,
+            inited: Arc::new(Once::new()),
         };
-        store.init()?;
+        store.init();
         Ok(store)
     }
 
     #[cfg(test)]
     pub fn in_memory() -> Result<Store> {
-        Store::new(None, "mail.xcf.io".to_string())
+        Store::new(None, "test".to_string())
     }
 
-    pub fn init(&self) -> Result<()> {
-        if INITED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst) == Ok(false) {
-            debug!("init store");
-            self.connection.execute(
-                r#"CREATE TABLE IF NOT EXISTS chat (
+    fn init(&self) {
+        self.inited.call_once(|| {
+            self.init_raw().unwrap();
+        });
+    }
+
+    fn init_raw(&self) -> Result<()> {
+        debug!("init store");
+        self.connection.execute(
+            r#"CREATE TABLE IF NOT EXISTS chat (
                         id VARCHAR(100) PRIMARY KEY
                     )"#,
-                NO_PARAMS,
-            )?;
-        }
+            NO_PARAMS,
+        )?;
+        self.connection.execute(
+            r#"CREATE TABLE IF NOT EXISTS mail (
+                        id VARCHAR(100) PRIMARY KEY,
+                        body BLOB
+                    )"#,
+            NO_PARAMS,
+        )?;
         Ok(())
     }
 
@@ -91,6 +120,26 @@ impl Store {
         }
         Ok(format!("{}@{}", chat_id, &self.mail_domain))
     }
+
+    pub fn save_mail(&self, id: &str, body: &Vec<u8>) -> Result<()> {
+        let affected = self.connection.execute(
+            "INSERT OR IGNORE INTO mail (id, body) VALUES (?, ?)",
+            params![id, body],
+        )?;
+        debug!("save mail: {}, inserted: {}", id, affected);
+        Ok(())
+    }
+
+    pub fn get_mail(&self, id: &str) -> Result<Option<Vec<u8>>> {
+        debug!("get mail: {}", id);
+        let body: Option<Vec<u8>> = self
+            .connection
+            .query_row("SELECT body FROM mail WHERE id = ?", &[id], |row| {
+                row.get(0)
+            })
+            .optional()?;
+        Ok(body)
+    }
 }
 
 #[cfg(test)]
@@ -99,11 +148,20 @@ mod tests {
 
     #[test]
     fn test_add_or_remove_bot() {
-        let store = Store::in_memory();
+        let store = Store::in_memory().unwrap();
         let chat_id = "some_chat_name";
-        store.add_bot_to_chat(chat_id);
+        store.add_bot_to_chat(chat_id).unwrap();
         assert!(store.exist_chat(chat_id));
-        store.remove_bot_from_chat(chat_id);
+        store.remove_bot_from_chat(chat_id).unwrap();
         assert!(!store.exist_chat(chat_id))
+    }
+
+    #[test]
+    fn test_save_and_store_mail() {
+        let store = Store::in_memory().unwrap();
+        let mail_id = "mail_id";
+        let body = vec![0, 10, 20, 30, 40, 50, 100, 255, 123, 45, 2];
+        store.save_mail(mail_id, &body).unwrap();
+        assert_eq!(store.get_mail(mail_id).unwrap().unwrap(), body);
     }
 }

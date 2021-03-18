@@ -102,7 +102,7 @@ mod tests {
             app_id: "cli_9ed975bb2df9900d".to_string(),
             app_secret: "Bhe0sm8TqMoXoL2YqoOWCspvChmjnPFE".to_string(),
         };
-        assert_ne!(c.get_tenant_access_token(), "")
+        assert_ne!(c.get_tenant_access_token().unwrap(), "")
     }
 
     #[test]
@@ -115,6 +115,6 @@ mod tests {
             "oc_2799c1920a9c739f54bec782b90b6e78".to_string(),
             "test".to_string(),
         );
-        assert!(ret);
+        assert!(ret.is_ok());
     }
 }

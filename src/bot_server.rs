@@ -4,8 +4,10 @@ use crate::bot_server::feishu_client::Client;
 use crate::store::Store;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use log::{debug, trace};
+use log::{debug, info, trace};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+use std::time::UNIX_EPOCH;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Challenge {
@@ -155,14 +157,84 @@ async fn index() -> impl Responder {
     "hello"
 }
 
+#[derive(Serialize, Deserialize)]
+struct MailQuery {
+    ts: String,
+    sign: String,
+}
+
+async fn mail(
+    mail_id: web::Path<String>,
+    query: web::Query<MailQuery>,
+    store: web::Data<Store>,
+    url_gen: web::Data<MailUrlGen>,
+) -> impl Responder {
+    if !url_gen.check_sign(&*mail_id, &query.ts, &query.sign) {
+        return HttpResponse::Forbidden().body("invalid sign");
+    }
+    let body = match store.get_mail(&*mail_id) {
+        Ok(Some(b)) => b,
+        Ok(None) => return HttpResponse::NotFound().finish(),
+        Err(e) => return HttpResponse::InternalServerError().body(e.to_string()),
+    };
+    HttpResponse::Ok()
+        .content_type("application/octet-stream")
+        .header(
+            "Content-Disposition",
+            format!("attachment; filename=\"{}\"", mail_id),
+        )
+        .body(body)
+}
+
+#[derive(Clone)]
+pub struct MailUrlGen {
+    secret: String,
+    domain: String,
+}
+
+impl MailUrlGen {
+    pub fn new(domain: String, secret: String) -> Self {
+        MailUrlGen { secret, domain }
+    }
+
+    pub fn gen_url(&self, id: &str) -> String {
+        let ts = std::time::SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let sign = self.compute_sign(id, ts);
+        format!(
+            "http://{}/mail/{}?ts={}&sign={}",
+            &self.domain, id, ts, sign
+        )
+    }
+
+    fn compute_sign(&self, id: &str, ts: impl Display) -> String {
+        let digest = md5::compute(format!("{}{}{}", id, ts, &self.secret).as_bytes());
+        format!("{:x}", digest)
+    }
+
+    pub fn check_sign(&self, id: &str, ts: &str, sign: &str) -> bool {
+        let real_sign = self.compute_sign(id, ts);
+        real_sign == sign
+    }
+}
+
 #[actix_web::main]
-pub(crate) async fn serve(client: Client, store: Store) -> std::io::Result<()> {
+pub(crate) async fn serve(
+    client: Client,
+    store: Store,
+    mail_url_gen: MailUrlGen,
+) -> std::io::Result<()> {
+    info!("Bot Server: 0.0.0.0:8080");
     HttpServer::new(move || {
         App::new()
             .data(client.clone())
             .data(store.clone())
+            .data(mail_url_gen.clone())
             .route("/challenge", web::post().to(challenge))
             .route("/event", web::post().to(event))
+            .route("/mail/{id}", web::get().to(mail))
             .route("/", web::get().to(index))
     })
     .bind("0.0.0.0:8080")?

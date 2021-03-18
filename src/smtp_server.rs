@@ -1,6 +1,7 @@
 mod mail;
 
 use crate::bot_server::feishu_client::Client;
+use crate::bot_server::MailUrlGen;
 use crate::smtp_server::mail::get_text_from_mail;
 use crate::store::Store;
 use anyhow::{anyhow, Result};
@@ -8,28 +9,44 @@ use log::{debug, error};
 use mailin_embedded::{Handler, Response, Server};
 use std::io;
 use std::net::IpAddr;
+use uuid::Uuid;
 
 #[derive(Clone)]
 struct MailHandler {
+    mail_url_gen: MailUrlGen,
     store: Store,
     client: Client,
     rcpts: Vec<String>,
     body: Vec<u8>,
+    url: String,
 }
 
 impl MailHandler {
-    pub fn new(client: Client, store: Store) -> Self {
+    pub fn new(client: Client, store: Store, mail_url_gen: MailUrlGen) -> Self {
         MailHandler {
             store,
             client,
+            mail_url_gen,
             body: Vec::new(),
             rcpts: Vec::new(),
+            url: "".to_string(),
+        }
+    }
+
+    pub fn store(&mut self) {
+        let id = Uuid::new_v4().to_string();
+        if let Err(e) = self.store.save_mail(&id, &self.body) {
+            error!("store mail error: {}", e)
+        } else {
+            self.url = id;
+            debug!("store mail: {}", &self.url);
         }
     }
 
     fn clear(&mut self) {
         self.rcpts.clear();
         self.body.clear();
+        self.url.clear();
     }
 
     fn notify(&mut self) {
@@ -38,7 +55,7 @@ impl MailHandler {
                 error!("get text from mail error: {}", e);
                 return;
             }
-            Ok(body) => body,
+            Ok(body) => format!("{}\n\nraw mail: {}", body, &self.url),
         };
         for rcpt in &self.rcpts {
             if let Some(name) = rcpt.split('@').next() {
@@ -89,6 +106,7 @@ impl Handler for MailHandler {
     }
 
     fn data_end(&mut self) -> Response {
+        self.store();
         self.notify();
         self.clear();
         mailin_embedded::response::OK
@@ -104,8 +122,8 @@ impl Handler for MailHandler {
     }
 }
 
-pub fn serve(client: Client, store: Store) -> Result<()> {
-    let handler = MailHandler::new(client, store);
+pub fn serve(client: Client, store: Store, mail_url_gen: MailUrlGen) -> Result<()> {
+    let handler = MailHandler::new(client, store, mail_url_gen);
     let mut server = Server::new(handler);
 
     server
