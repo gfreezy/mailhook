@@ -38,7 +38,7 @@ impl MailHandler {
         if let Err(e) = self.store.save_mail(&id, &self.body) {
             error!("store mail error: {}", e)
         } else {
-            self.url = id;
+            self.url = self.mail_url_gen.gen_url(&id);
             debug!("store mail: {}", &self.url);
         }
     }

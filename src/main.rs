@@ -1,5 +1,3 @@
-#![feature(once_cell)]
-
 mod bot_server;
 mod smtp_server;
 mod store;
