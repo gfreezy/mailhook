@@ -1,0 +1,13 @@
+version: '3'
+services:
+  mailhook:
+    build: .
+    restart: always
+    environment:
+      - FEISHU_APP_ID=cli_9ed975bb2df9900d
+      - FEISHU_APP_SECRET=Bhe0sm8TqMoXoL2YqoOWCspvChmjnPFE
+      - MAIL_DOMAIN=mail.xcf.io
+      - STORE_PATH=/store/store.sqlite
+    network_mode: "host"
+    volumes:
+      - /opt/mailhook/store:/store
