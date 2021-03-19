@@ -14,7 +14,7 @@ actix-web = "3"
 serde = { version = "1.0", features = ["serde_derive"] }
 rusqlite = { version = "0.24", features = ["bundled"] }
 log = "0.4"
-melib = "0.6"
+melib = { git = 'https://github.com/gfreezy/meli', rev = "05508d3" }
 ureq = { version = "2", features = ["json"] }
 serde_json = "1.0"
 actix-files = "0.5"

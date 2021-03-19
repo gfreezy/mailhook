@@ -83,4 +83,41 @@ Content-Type: text/html; charset="UTF-8"
         let subattachments: Vec<Attachment> = body.attachments();
         assert_eq!(subattachments.len(), 3);
     }
+
+    #[test]
+    fn parse_gbk_mail() {
+        let raw = r#"From: "=?gb18030?B?MW1pbjIwMTg=?=" <1min2018@xiachufang.com>
+To: "=?gb18030?B?b2NfMjc5OWMxOTIwYTljNzM5ZjU0YmVjNzgyYjkwYjZlNzg=?=" <oc_2799c1920a9c739f54bec782b90b6e78@mail.xcf.io>
+Subject: =?gb18030?B?zNrRtsbz0rXTys/k19S2r9eqt6LR6dak08q8/g==?=
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_6054AC6B_14AB2958_56E13774"
+Content-Transfer-Encoding: 8Bit
+Date: Fri, 19 Mar 2021 21:51:39 +0800
+X-Priority: 3
+Message-ID: <tencent_0610DD0B531A6A9C3F0F9AC5@qq.com>
+X-QQ-MIME: TCMime 1.0 by Tencent
+X-Mailer: QQMail 2.x
+X-QQ-Mailer: QQMail 2.x
+X-QQ-SENDSIZE: 520
+Received: from qq.com (unknown [127.0.0.1])
+	by smtp.qq.com (ESMTP) with SMTP
+	id ; Fri, 19 Mar 2021 21:51:40 +0800 (CST)
+Feedback-ID: default:xiachufang.com:qybgforeign:qybgforeign6
+X-QQ-Bgrelay: 1
+
+This is a multi-part message in MIME format.
+
+"#;
+        let envelope = Envelope::from_bytes(raw.as_bytes(), None).unwrap();
+        expect![[r#"腾讯企业邮箱自动转发验证邮件"#]].assert_eq(envelope.subject().as_ref());
+        expect![[r#"<tencent_0610DD0B531A6A9C3F0F9AC5@qq.com>"#]]
+            .assert_eq(envelope.message_id_display().as_ref());
+
+        let body = envelope.body_bytes(raw.as_bytes());
+        expect![[r#"multipart/alternative"#]].assert_eq(body.content_type().to_string().as_str());
+
+        let body_text = body.text();
+        expect![[r#""#]].assert_eq(&body_text);
+    }
 }

@@ -91,30 +91,3 @@ impl Client {
         Ok(resp.tenant_access_token)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn get_tenant_access_token() {
-        let c = Client {
-            app_id: "cli_9ed975bb2df9900d".to_string(),
-            app_secret: "Bhe0sm8TqMoXoL2YqoOWCspvChmjnPFE".to_string(),
-        };
-        assert_ne!(c.get_tenant_access_token().unwrap(), "")
-    }
-
-    #[test]
-    fn send_text_message() {
-        let c = Client {
-            app_id: "cli_9ed975bb2df9900d".to_string(),
-            app_secret: "Bhe0sm8TqMoXoL2YqoOWCspvChmjnPFE".to_string(),
-        };
-        let ret = c.send_text_message(
-            "oc_2799c1920a9c739f54bec782b90b6e78".to_string(),
-            "test".to_string(),
-        );
-        assert!(ret.is_ok());
-    }
-}
