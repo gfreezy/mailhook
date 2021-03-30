@@ -6,7 +6,7 @@ use crate::bot_server::feishu_client::Client;
 use crate::bot_server::MailUrlGen;
 use crate::store::Store;
 use anyhow::Result;
-use simplelog::{ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
 use std::thread;
 
 fn main() -> Result<()> {
@@ -14,7 +14,12 @@ fn main() -> Result<()> {
         .add_filter_allow_str("mailhook")
         .add_filter_allow_str("mailin")
         .build();
-    TermLogger::init(LevelFilter::Trace, config, TerminalMode::Mixed)?;
+    TermLogger::init(
+        LevelFilter::Trace,
+        config,
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    )?;
     let feishu_app_id = std::env::var("FEISHU_APP_ID").expect("`FEISHU_APP_ID` must be set");
     let feishu_app_secret =
         std::env::var("FEISHU_APP_SECRET").expect("`FEISHU_APP_SECRET` must be set");
