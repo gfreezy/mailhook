@@ -64,7 +64,8 @@ impl Client {
         root_id: Option<String>,
     ) -> Result<()> {
         let self_clone = self.clone();
-        Ok(block(move || self_clone.reply_text_message(chat_id, text, root_id)).await?)
+        let _ = block(move || self_clone.reply_text_message(chat_id, text, root_id)).await?;
+        Ok(())
     }
 
     pub async fn send_text_message_async(&self, chat_id: String, text: String) -> Result<()> {

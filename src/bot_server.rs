@@ -179,10 +179,10 @@ async fn mail(
     };
     HttpResponse::Ok()
         .content_type("application/octet-stream")
-        .header(
+        .append_header((
             "Content-Disposition",
             format!("attachment; filename=\"{}\"", mail_id),
-        )
+        ))
         .body(body)
 }
 
