@@ -1,6 +1,7 @@
 mod mail;
 
-use crate::bot_server::feishu_client::Client;
+use crate::bot_server::feishu_client::message::{Message, PostLang};
+use crate::bot_server::feishu_client::{Client, ReceiverId};
 use crate::bot_server::MailUrlGen;
 use crate::smtp_server::mail::get_text_from_mail;
 use crate::store::Store;
@@ -63,7 +64,7 @@ impl MailHandler {
                     debug!("notify {}", rcpt);
                     let ret = self
                         .client
-                        .send_text_message(name.to_string(), body.to_string());
+                        .send_message(&ReceiverId::ChatId(name.to_string()), &Message::text(&body));
                     if let Err(e) = ret {
                         error!(
                             "send text message error, chat_id: {}, body: {}, msg: {}",
