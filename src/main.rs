@@ -1,3 +1,4 @@
+mod bot_dto;
 mod bot_server;
 mod smtp_server;
 mod store;
@@ -13,8 +14,14 @@ fn main() -> Result<()> {
     let config = ConfigBuilder::new()
         .add_filter_allow_str("mailhook")
         .add_filter_allow_str("mailin")
+        .add_filter_allow_str("actix_web")
         .build();
-    TermLogger::init(LevelFilter::Trace, config, TerminalMode::Mixed)?;
+    TermLogger::init(
+        LevelFilter::Debug,
+        config,
+        TerminalMode::Mixed,
+        simplelog::ColorChoice::Auto,
+    )?;
     let feishu_app_id = std::env::var("FEISHU_APP_ID").expect("`FEISHU_APP_ID` must be set");
     let feishu_app_secret =
         std::env::var("FEISHU_APP_SECRET").expect("`FEISHU_APP_SECRET` must be set");

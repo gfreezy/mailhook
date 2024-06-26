@@ -3,3 +3,4 @@ mail.txt
 store.sqlite
 *.iml
 .cache
+.vscode

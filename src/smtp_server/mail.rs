@@ -1,15 +1,29 @@
 use anyhow::Result;
+use melib::attachments::DecodeOptions;
 use melib::Envelope;
 
-pub fn get_text_from_mail(mail: &[u8]) -> Result<String> {
+pub struct MailContent {
+    pub text: String,
+    pub files: Vec<(String, Vec<u8>)>,
+}
+
+pub fn get_data_from_mail(mail: &[u8]) -> Result<MailContent> {
     let envelope = Envelope::from_bytes(mail, None)?;
     let attachment = envelope.body_bytes(mail);
     let body = attachment.text();
-    if let Some(sub) = envelope.subject {
-        Ok(format!("{}\n{}", sub, body))
+    let text = if let Some(sub) = envelope.subject {
+        format!("{}\n{}", sub, body)
     } else {
-        Ok(body)
+        body
+    };
+    let mut files = Vec::new();
+    for atta in attachment.attachments() {
+        let Some(filename) = atta.filename() else {
+            continue;
+        };
+        files.push((filename, atta.decode(DecodeOptions::default())));
     }
+    Ok(MailContent { text, files })
 }
 
 #[cfg(test)]

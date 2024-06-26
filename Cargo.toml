@@ -1,29 +1,27 @@
 [package]
 name = "mailhook"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Alex.F <gfreezy@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simplelog = "0.9.0"
-mailin-embedded = { version = "0.6", features = ["rtls"] }
+simplelog = "0.12.2"
+mailin-embedded = { version = "0.8.2", features = ["rtls"] }
 anyhow = "1.0"
 actix-web = "4.0.0-beta.4"
 serde = { version = "1.0", features = ["serde_derive"] }
-rusqlite = { version = "0.24", features = ["bundled"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
 log = "0.4"
-melib = { git = 'https://github.com/gfreezy/meli', rev = "05508d3" }
+melib = { version = "0.8.6" }
 ureq = { version = "2", features = ["json"] }
 serde_json = "1.0"
-actix-files = "0.5"
+actix-files = "0.6.6"
 md5 = "0.7"
-uuid = { version = "0.8", features = ["v4"] }
+uuid = { version = "1.9.1", features = ["v4"] }
 once_cell = "1.5.2"
-
-[patch.crates-io]
-mailin = { path = 'patch/mailin' }
+ureq_multipart = "1.1.1"
 
 [dev-dependencies]
 expect-test = "1.1"

@@ -1,14 +1,14 @@
 mod mail;
 
-use crate::bot_server::feishu_client::Client;
+use crate::bot_server::feishu_client::{Client, FileType};
 use crate::bot_server::MailUrlGen;
-use crate::smtp_server::mail::get_text_from_mail;
+use crate::smtp_server::mail::get_data_from_mail;
 use crate::store::Store;
 use anyhow::{anyhow, Result};
-use log::{debug, error};
+use log::{debug, error, info};
 use mailin_embedded::{Handler, Response, Server};
-use std::io;
 use std::net::IpAddr;
+use std::{io, vec};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -49,18 +49,29 @@ impl MailHandler {
         self.url.clear();
     }
 
-    fn notify(&mut self) {
-        let body = match get_text_from_mail(&self.body) {
+    fn notify(&mut self) -> Result<()> {
+        let mail_content = match get_data_from_mail(&self.body) {
             Err(e) => {
                 error!("get text from mail error: {}", e);
-                return;
+                return Err(e);
             }
-            Ok(body) => format!("{}\n\nraw mail: {}", body, &self.url),
+            Ok(body) => body,
         };
+
+        let mut file_ids = vec![];
+        for (filename, data) in mail_content.files {
+            let file_id = self.client.create_file(FileType::Stream, filename, &data)?;
+            file_ids.push(file_id);
+        }
+
+        info!("file ids: {:?}", file_ids);
+        let body = format!("{}\n\nraw mail: {}", &mail_content.text, &self.url);
+
         for rcpt in &self.rcpts {
             if let Some(name) = rcpt.split('@').next() {
                 if self.store.exist_chat(name) {
                     debug!("notify {}", rcpt);
+                    // send text message
                     let ret = self
                         .client
                         .send_text_message(name.to_string(), body.to_string());
@@ -70,14 +81,28 @@ impl MailHandler {
                             name, body, e
                         );
                     }
+                    // send file message
+                    for file_id in &file_ids {
+                        let ret = self
+                            .client
+                            .send_file_message(name.to_string(), file_id.to_string());
+                        if let Err(e) = ret {
+                            error!(
+                                "send file message error, chat_id: {}, file_id: {}, msg: {}",
+                                name, file_id, e
+                            );
+                        }
+                    }
                 }
             }
         }
+        return Ok(());
     }
 }
 
 impl Handler for MailHandler {
-    fn helo(&mut self, _ip: IpAddr, _domain: &str) -> Response {
+    fn helo(&mut self, ip: IpAddr, _domain: &str) -> Response {
+        info!("helo from {}", ip);
         mailin_embedded::response::OK
     }
 
@@ -86,6 +111,7 @@ impl Handler for MailHandler {
     }
 
     fn rcpt(&mut self, to: &str) -> Response {
+        info!("rcpt to {}", to);
         self.rcpts.push(to.to_string());
         mailin_embedded::response::OK
     }
@@ -107,7 +133,9 @@ impl Handler for MailHandler {
 
     fn data_end(&mut self) -> Response {
         self.store();
-        self.notify();
+        if let Err(e) = self.notify() {
+            error!("notify error: {}", e);
+        }
         self.clear();
         mailin_embedded::response::OK
     }
@@ -127,6 +155,8 @@ pub fn serve(client: Client, store: Store, mail_url_gen: MailUrlGen) -> Result<(
     let mut server = Server::new(handler);
 
     server
+        .with_ssl(mailin_embedded::SslConfig::None)
+        .map_err(|e| anyhow!("{}", e))?
         .with_name("Mailhook SMTP Server")
         .with_addr("0.0.0.0:25")
         .map_err(|e| anyhow!("{}", e))?;

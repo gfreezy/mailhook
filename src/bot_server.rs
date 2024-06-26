@@ -1,113 +1,31 @@
 pub(crate) mod feishu_client;
 
+use crate::bot_dto::{
+    AddOrRemoveBot, Challenge, ChatType, Event, EventRequest, EventV2, ReceivedMessage,
+};
 use crate::bot_server::feishu_client::Client;
 use crate::store::Store;
+use actix_web::web::Data;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use log::{debug, info, trace};
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::time::UNIX_EPOCH;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Challenge {
-    challenge: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct EventHeader {
-    event_id: String,
-    token: String,
-    create_time: String,
-    event_type: String,
-    tenant_key: String,
-    app_id: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum Event {
-    TextMessage(TextMessage),
-    AddOrRemoveBot(AddOrRemoveBot),
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum EventRequest {
-    Challenge(Challenge),
-    EventV1 {
-        ts: String,
-        uuid: String,
-        token: String,
-        #[serde(rename = "type")]
-        type_: String,
-        event: Event,
-    },
-    EventV2 {
-        schema: String,
-        header: EventHeader,
-        event: Event,
-    },
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TextMessage {
-    #[serde(rename = "type")]
-    type_: String,
-    app_id: String,
-    tenant_key: String,
-    root_id: Option<String>,
-    parent_id: String,
-    open_chat_id: String,
-    chat_type: String,
-    msg_type: String,
-    open_id: String,
-    employee_id: String,
-    union_id: String,
-    open_message_id: String,
-    is_mention: bool,
-    text: String,
-    text_without_at_bot: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AddOrRemoveBot {
-    app_id: String,
-    chat_i18n_names: ChatI18nNames,
-    chat_name: String,
-    chat_owner_employee_id: String,
-    chat_owner_name: String,
-    chat_owner_open_id: String,
-    open_chat_id: String,
-    operator_employee_id: String,
-    operator_name: String,
-    operator_open_id: String,
-    owner_is_bot: bool,
-    tenant_key: String,
-    #[serde(rename = "type")]
-    type_: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ChatI18nNames {
-    en_us: String,
-    zh_cn: String,
-}
 
 async fn event(
     req: web::Json<EventRequest>,
     store: web::Data<Store>,
     client: web::Data<Client>,
 ) -> HttpResponse {
-    trace!("event: {:?}", &req);
-    let event = match &*req {
+    info!("event: {:?}", &req);
+    let (event, event_type) = match &*req {
         EventRequest::Challenge(c) => return HttpResponse::Ok().json(c),
-        EventRequest::EventV1 { event, .. } => event,
-        EventRequest::EventV2 { event, .. } => event,
+        EventRequest::EventV2(EventV2 { event, header, .. }) => (event, &header.event_type),
     };
     let ret = match event {
-        Event::AddOrRemoveBot(e) => on_add_or_remove_bot(&store, &client, e).await,
-        Event::TextMessage(e) => on_text_message(&store, &client, e).await,
+        Event::AddOrRemoveBot(e) => on_add_or_remove_bot(&store, &client, &event_type, e).await,
+        Event::ReceivedMessage(e) => on_text_message(&store, &client, e).await,
     };
     if let Err(e) = ret {
         return HttpResponse::InternalServerError().json(e.to_string());
@@ -116,40 +34,43 @@ async fn event(
     return HttpResponse::Ok().json("ok");
 }
 
-async fn on_add_or_remove_bot(store: &Store, client: &Client, msg: &AddOrRemoveBot) -> Result<()> {
-    let open_chat_id = msg.open_chat_id.clone();
-    match msg.type_.as_str() {
-        "add_bot" => {
-            store.add_bot_to_chat(&open_chat_id)?;
-            let mail = store.mail_for_chat(&open_chat_id)?;
+async fn on_add_or_remove_bot(
+    store: &Store,
+    client: &Client,
+    ty: &str,
+    msg: &AddOrRemoveBot,
+) -> Result<()> {
+    let chat_id = msg.chat_id.clone();
+    match ty {
+        "im.chat.member.bot.added_v1" => {
+            store.add_bot_to_chat(&chat_id)?;
+            let mail = store.mail_for_chat(&chat_id)?;
             let text = format!("Email address: {}", mail);
-            let _ = client.send_text_message_async(open_chat_id, text).await;
+            let _ = client.send_text_message_async(chat_id, text).await;
         }
-        "remove_bot" => store.remove_bot_from_chat(&open_chat_id)?,
+        "im.chat.member.bot.deleted_v1" => store.remove_bot_from_chat(&chat_id)?,
         _ => unreachable!(),
     };
     Ok(())
 }
 
-async fn on_text_message(store: &Store, client: &Client, msg: &TextMessage) -> Result<()> {
+async fn on_text_message(store: &Store, client: &Client, msg: &ReceivedMessage) -> Result<()> {
     debug!("on text message");
-    let text = match msg.chat_type.as_str() {
-        "private" => "请在群组中@我".to_string(),
-        "group" => store.mail_for_chat(&msg.open_chat_id)?,
-        _ => unreachable!(),
+    let text = match msg.message.chat_type {
+        ChatType::P2p => "请在群中@我".to_string(),
+        ChatType::Group => format!(
+            "邮箱地址：{}\n\n这个邮箱的邮件会自动转发到当前群",
+            store.mail_for_chat(msg.message.chat_id.as_ref().unwrap())?
+        ),
     };
 
     client
-        .reply_text_message_async(
-            msg.open_chat_id.clone(),
-            text,
-            Some(msg.open_message_id.clone()),
-        )
+        .reply_text_message_async(msg.message.message_id.clone(), text)
         .await?;
     Ok(())
 }
 
-async fn challenge(req: web::Json<Challenge>) -> impl Responder {
+async fn challenge(req: web::Json<Challenge>) -> web::Json<Challenge> {
     req
 }
 
@@ -229,9 +150,10 @@ pub(crate) async fn serve(
     info!("Bot Server: 0.0.0.0:8080");
     HttpServer::new(move || {
         App::new()
-            .data(client.clone())
-            .data(store.clone())
-            .data(mail_url_gen.clone())
+            .wrap(actix_web::middleware::Logger::default())
+            .app_data(Data::new(client.clone()))
+            .app_data(Data::new(store.clone()))
+            .app_data(Data::new(mail_url_gen.clone()))
             .route("/challenge", web::post().to(challenge))
             .route("/event", web::post().to(event))
             .route("/mail/{id}", web::get().to(mail))

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use log::{debug, error};
-use rusqlite::{params, Connection, OptionalExtension, NO_PARAMS};
+use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::{Arc, Once};
 
 pub struct Store {
@@ -68,14 +68,14 @@ impl Store {
             r#"CREATE TABLE IF NOT EXISTS chat (
                         id VARCHAR(100) PRIMARY KEY
                     )"#,
-            NO_PARAMS,
+            (),
         )?;
         self.connection.execute(
             r#"CREATE TABLE IF NOT EXISTS mail (
                         id VARCHAR(100) PRIMARY KEY,
                         body BLOB
                     )"#,
-            NO_PARAMS,
+            (),
         )?;
         Ok(())
     }
