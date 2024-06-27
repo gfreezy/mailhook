@@ -10,11 +10,14 @@ edition = "2021"
 simplelog = "0.12.2"
 mailin-embedded = { version = "0.8.2", features = ["rtls"] }
 anyhow = "1.0"
-actix-web = "4.0.0-beta.4"
+actix-web = "4.8.0"
 serde = { version = "1.0", features = ["serde_derive"] }
 rusqlite = { version = "0.31", features = ["bundled"] }
 log = "0.4"
-melib = { version = "0.8.6" }
+melib = { version = "0.8.6", default-features = false, features = [
+    "smtp",
+    "tls-static",
+] }
 ureq = { version = "2", features = ["json"] }
 serde_json = "1.0"
 actix-files = "0.6.6"
