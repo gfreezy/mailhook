@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - [0-9]+.*
+      - '[0-9]+.*'
 env:
   REGISTRY: docker.io
   IMAGE_NAME: ${{ github.repository }}
