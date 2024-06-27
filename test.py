@@ -1,5 +1,6 @@
 # smtplib provides functionality to send emails using SMTP.
 import smtplib
+import os
 
 # MIMEMultipart send emails with both text content and attachments.
 from email.mime.multipart import MIMEMultipart
@@ -31,14 +32,15 @@ message["To"] = recipient_email
 body_part = MIMEText(body)
 message.attach(body_part)
 
-path_to_file = "/Users/feichao/Downloads/fp.pdf"
+path_to_file = "test.py"
+file_name = os.path.basename(path_to_file)
 # section 1 to attach file
 with open(path_to_file, "rb") as file:
     # Attach the file with filename to the email
-    message.attach(MIMEApplication(file.read(), Name="fp.pdf"))
+    message.attach(MIMEApplication(file.read(), Name=file_name))
 with open(path_to_file, "rb") as file:
     # Attach the file with filename to the email
-    message.attach(MIMEApplication(file.read(), Name="fp.pdf"))
+    message.attach(MIMEApplication(file.read(), Name=file_name))
 
 # secction 2 for sending email
 with smtplib.SMTP(smtp_server, smtp_port) as server:

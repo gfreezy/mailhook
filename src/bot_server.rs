@@ -147,7 +147,7 @@ pub(crate) async fn serve(
     store: Store,
     mail_url_gen: MailUrlGen,
 ) -> std::io::Result<()> {
-    info!("Bot Server: 0.0.0.0:8080");
+    info!("Bot Server: 0.0.0.0:8088");
     HttpServer::new(move || {
         App::new()
             .wrap(actix_web::middleware::Logger::default())
@@ -159,7 +159,7 @@ pub(crate) async fn serve(
             .route("/mail/{id}", web::get().to(mail))
             .route("/", web::get().to(index))
     })
-    .bind("0.0.0.0:8080")?
+    .bind("0.0.0.0:8088")?
     .run()
     .await
 }
