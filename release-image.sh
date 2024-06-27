@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -ex
 # Get version from Cargo.toml
 VERSION=$(grep version Cargo.toml | sed -n 's/.*version = "\([^"]*\)".*/\1/p;q')
 echo $VERSION
