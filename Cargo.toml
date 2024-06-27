@@ -1,6 +1,6 @@
 [package]
 name = "mailhook"
-version = "0.1.1"
+version = "2.0.0"
 authors = ["Alex.F <gfreezy@gmail.com>"]
 edition = "2021"
 
