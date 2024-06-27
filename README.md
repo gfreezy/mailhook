@@ -9,9 +9,12 @@
 3. 从群中删除机器人可关闭转发功能
 4. 在群内 at 机器人会自动回复邮件地址
 
+## 如何配置飞书机器人
+在飞书开放平台创建一个应用，获取 app id 和 app secret，然后配置事件订阅 URL 为 `http://your.domain/event`。
+
 ## 如何启动
 
-```
+```bash
 FEISHU_APP_ID=app_id FEISHU_APP_SECRET=app_secret MAIL_DOMAIN=mail.domain WEB_DOMAIN=web.domain mailhook
 ```
 
@@ -40,4 +43,24 @@ MX    @      12.23.3.12
 
 ```
 MX    mail      12.23.3.12
+```
+
+## Docker 启动
+```bash
+docker run -p 8088:8088 -p 25:25 -e FEISHU_APP_ID=app_id -e FEISHU_APP_SECRET=app_secret -e MAIL_DOMAIN=mail.domain -e WEB_DOMAIN=web.domain gfreezy/mailhook
+```
+
+## Docker-compose 启动
+
+1. 修改 `docker-compose.yml` 中的环境变量: FEISHU_APP_ID, FEISHU_APP_SECRET, MAIL_DOMAIN, WEB_DOMAIN
+
+2. 启动
+
+```bash
+docker-compose up
+```
+
+## Release New Docker Image
+```bash
+./release-image.sh
 ```

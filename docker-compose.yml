@@ -1,0 +1,15 @@
+version: '3'
+services:
+  mailhook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gfreezy/mailhook:latest
+    ports:
+      - "8088:8088"
+      - "25:25"
+    environment:
+      - FEISHU_APP_ID=value
+      - FEISHU_APP_SECRET=value
+      - MAIL_DOMAIN=value
+      - WEB_DOMAIN=value
