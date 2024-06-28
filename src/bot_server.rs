@@ -102,7 +102,7 @@ async fn mail(
         .content_type("application/octet-stream")
         .append_header((
             "Content-Disposition",
-            format!("attachment; filename=\"{}\"", mail_id),
+            format!("attachment; filename=\"{}.eml\"", mail_id),
         ))
         .body(body)
 }
