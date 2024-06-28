@@ -1323,8 +1323,7 @@ dependencies = [
 [[package]]
 name = "mailin"
 version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff08fefa0913a8fb1cbd31bd83a4841db8b6eb78320d517b31fcf60e2541d57a"
+source = "git+https://code.alienscience.org/gfreezy/mailin?branch=master#274877443e4b990154bdd19abeeca48a689a35a1"
 dependencies = [
  "base64-compat",
  "either",
@@ -1336,8 +1335,7 @@ dependencies = [
 [[package]]
 name = "mailin-embedded"
 version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "143ac497c8c38d22407344e2252767ffd8253593a3d2464acc8619c8ef15835c"
+source = "git+https://code.alienscience.org/gfreezy/mailin?branch=master#274877443e4b990154bdd19abeeca48a689a35a1"
 dependencies = [
  "bufstream-fresh",
  "cfg-if",
