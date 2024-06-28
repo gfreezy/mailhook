@@ -34,7 +34,12 @@ fn main() -> Result<()> {
     let store_clone = store.clone();
     let mail_url_gen = MailUrlGen::new(web_domain, feishu_app_secret);
     let mail_url_gen_clone = mail_url_gen.clone();
-    thread::spawn(move || smtp_server::serve(client_clone, store_clone, mail_url_gen_clone));
+    thread::spawn(move || {
+        let ret = smtp_server::serve(client_clone, store_clone, mail_url_gen_clone);
+        if let Err(e) = ret {
+            panic!("smtp server error: {}", e);
+        }
+    });
     bot_server::serve(client, store, mail_url_gen)?;
     Ok(())
 }
